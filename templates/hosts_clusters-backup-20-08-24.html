@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Hosts and Clusters{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Hosts and Clusters Report</h1>
+<table id="hostsTable" class="table table-striped table-bordered" style="width:100%">
+    <thead>
+        <tr>
+            <th>Host</th>
+            <th>Datacenter</th>
+            <th>ServiceTag</th>
+            <th>Cluster</th>
+            <th>Vendor</th>
+            <th>NumCPU</th>
+            <th>NumCores</th>
+            <th>TotalVMs</th>
+            <th>PowerPolicy</th>
+            <th>DNS</th>
+            <th>NTP</th>
+            <th>IP</th>
+            <th>MAC</th>
+            <th>Mem</th>
+            <th>InUseMem</th>
+        </tr>
+        <tr>
+            <th><input type="text" placeholder="Filter Host" class="column-filter form-control form-control-sm" data-column="0"></th>
+            <th><input type="text" placeholder="Filter Datacenter" class="column-filter form-control form-control-sm" data-column="1"></th>
+            <th><input type="text" placeholder="Filter ServiceTag" class="column-filter form-control form-control-sm" data-column="2"></th>
+            <th><input type="text" placeholder="Filter Cluster" class="column-filter form-control form-control-sm" data-column="3"></th>
+            <th><input type="text" placeholder="Filter Vendor" class="column-filter form-control form-control-sm" data-column="4"></th>
+            <th><input type="text" placeholder="Filter NumCPU" class="column-filter form-control form-control-sm" data-column="5"></th>
+            <th><input type="text" placeholder="Filter NumCores" class="column-filter form-control form-control-sm" data-column="6"></th>
+            <th><input type="text" placeholder="Filter TotalVMs" class="column-filter form-control form-control-sm" data-column="7"></th>
+            <th><input type="text" placeholder="Filter PowerPolicy" class="column-filter form-control form-control-sm" data-column="8"></th>
+            <th><input type="text" placeholder="Filter DNS" class="column-filter form-control form-control-sm" data-column="9"></th>
+            <th><input type="text" placeholder="Filter NTP" class="column-filter form-control form-control-sm" data-column="10"></th>
+            <th><input type="text" placeholder="Filter IP" class="column-filter form-control form-control-sm" data-column="11"></th>
+            <th><input type="text" placeholder="Filter MAC" class="column-filter form-control form-control-sm" data-column="12"></th>
+            <th><input type="text" placeholder="Filter Mem" class="column-filter form-control form-control-sm" data-column="13"></th>
+            <th><input type="text" placeholder="Filter InUseMem" class="column-filter form-control form-control-sm" data-column="14"></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for host in hosts %}
+        <tr>
+            <td>{{ host.Host }}</td>
+            <td>{{ host.Datacenter }}</td>
+            <td>{{ host.ServiceTag }}</td>
+            <td>{{ host.Cluster }}</td>
+            <td>{{ host.Vendor }}</td>
+            <td>{{ host.NumCPU }}</td>
+            <td>{{ host.NumCores }}</td>
+            <td>{{ host.TotalVMs }}</td>
+            <td>{{ host.PowerPolicy }}</td>
+            <td>{{ host.DNS }}</td>
+            <td>{{ host.NTP }}</td>
+            <td>{{ host.IP }}</td>
+            <td>{{ host.MAC }}</td>
+            <td>{{ host.Mem }}</td>
+            <td>{{ host.InUseMem }}</td>
+
+
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#hostsTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: ['copy', 'csv', 'excel'],
+            orderCellsTop: true,
+            fixedHeader: true
+        });
+        $('.column-filter').on('keyup change', function() {
+            table.column($(this).data('column'))
+                .search(this.value)
+                .draw();
+        });
+    });
+    </script>
+{% endblock %}

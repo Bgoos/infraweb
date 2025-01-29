@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Users and Groups{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Users and Groups Report</h1>
+<table id="usersTable" class="table table-striped table-bordered" style="width:100%">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>SAM Account Name</th>
+            <th>Role</th>
+            <th>Enabled</th>
+            <th>Creation Date</th>
+            <th>Last Login</th>
+        </tr>
+        <tr>
+            <th><input type="text" placeholder="Filter Name" class="column-filter form-control form-control-sm" data-column="0"></th>
+            <th><input type="text" placeholder="Filter Samaccountname" class="column-filter form-control form-control-sm" data-column="1"></th>
+            <th><input type="text" placeholder="Filter Role" class="column-filter form-control form-control-sm" data-column="2"></th>
+            <th><input type="text" placeholder="Filter Enabled" class="column-filter form-control form-control-sm" data-column="3"></th>
+            <th><input type="text" placeholder="Filter CreationDate" class="column-filter form-control form-control-sm" data-column="4"></th>
+            <th><input type="text" placeholder="Filter LastLogin" class="column-filter form-control form-control-sm" data-column="5"></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+        <tr>
+            <td>{{ user.Name }}</td>
+            <td>{{ user.Samaccountname }}</td>
+            <td>{{ user.Role }}</td>
+            <td>{{ "Yes" if user.Enabled else "No" }}</td>
+            <td>{{ user.CreationDate }}</td>
+            <td>{{ user.LastLogin }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#usersTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: ['copy', 'csv', 'excel'],
+            orderCellsTop: true,
+            fixedHeader: true
+        });
+    
+        $('.column-filter').on('keyup change', function() {
+            table.column($(this).data('column'))
+                .search(this.value)
+                .draw();
+        });
+    });
+    </script>
+{% endblock %}

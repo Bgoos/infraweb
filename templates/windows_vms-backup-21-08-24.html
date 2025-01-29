@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Windows VMs{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Windows VMs Report</h1>
+<table id="windowsVMTable" class="table table-striped table-bordered" style="width:100%">
+    <thead>
+        <tr>
+            <th>VM Name</th>
+            <th>OS</th>
+            <th>Site</th>
+            <th>State</th>
+            <th>Size</th>
+            <th>IP</th>
+            <th>NIC Type</th>
+            <th>VMTools</th>
+            <th>VM Version</th>
+            <th>Cortex</th>
+            <th>VR</th>
+            <th>Update TG</th>
+            <th>Notes</th>
+        </tr>
+        <tr>
+            <th><input type="text" placeholder="Filter VMName" class="column-filter form-control form-control-sm" data-column="0"></th>
+            <th><input type="text" placeholder="Filter OS" class="column-filter form-control form-control-sm" data-column="1"></th>
+            <th><input type="text" placeholder="Filter Site" class="column-filter form-control form-control-sm" data-column="2"></th>
+            <th><input type="text" placeholder="Filter State" class="column-filter form-control form-control-sm" data-column="3"></th>
+            <th><input type="text" placeholder="Filter Size" class="column-filter form-control form-control-sm" data-column="4"></th>
+            <th><input type="text" placeholder="Filter IP" class="column-filter form-control form-control-sm" data-column="5"></th>
+            <th><input type="text" placeholder="Filter NICType" class="column-filter form-control form-control-sm" data-column="6"></th>
+            <th><input type="text" placeholder="Filter VMToolsVersion" class="column-filter form-control form-control-sm" data-column="7"></th>
+            <th><input type="text" placeholder="Filter VMHardwareVersion" class="column-filter form-control form-control-sm" data-column="8"></th>
+            <th><input type="text" placeholder="Filter Cortex" class="column-filter form-control form-control-sm" data-column="9"></th>
+            <th><input type="text" placeholder="Filter VR" class="column-filter form-control form-control-sm" data-column="10"></th>
+            <th><input type="text" placeholder="Filter UpdateTG" class="column-filter form-control form-control-sm" data-column="11"></th>
+            <th><input type="text" placeholder="Filter Notes" class="column-filter form-control form-control-sm" data-column="12"></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for vm in windows_vms %}
+        <tr>
+            <td>{{ vm.VMName }}</td>
+            <td>{{ vm.OS }}</td>
+            <td>{{ vm.Site }}</td>
+            <td>{{ vm.State }}</td>
+            <td>{{ vm.Size }}</td>
+            <td>{{ vm.IP }}</td>
+            <td>{{ vm.NICType }}</td>
+            <td>{{ vm.VMToolsVersion }}</td>
+            <td>{{ vm.VMHardwareVersion }}</td>
+            <td>{{ "Yes" if vm.Cortex else "No" }}</td>
+            <td>{{ "Yes" if vm.VR else "No" }}</td>
+            <td>{{ vm.UpdateTG }}</td>
+            <td>{{ vm.Notes }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#windowsVMTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: ['copy', 'csv', 'excel'],
+            orderCellsTop: true,
+            fixedHeader: true
+        });
+        $('.column-filter').on('keyup change', function() {
+            table.column($(this).data('column'))
+                .search(this.value)
+                .draw();
+        });
+    });
+    </script>
+{% endblock %}

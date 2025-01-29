@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Virtual Machines{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Virtual Machines</h1>
+<table id="vmTable" class="table table-striped table-bordered" style="width:100%">
+    <thead>
+        <tr>
+            <th>VMName</th>
+            <th>OS</th>
+            <th>Site</th>
+            <th>State</th>
+            <th>Created</th>
+            <th>SizeGB</th>
+            <th>InUseGB</th>
+            <th>IP</th>
+            <th>NIC</th>
+            <th>VMTools</th>
+            <th>VMVersion</th>
+            <th>Host</th>
+            <th>Cluster</th>
+            <th>Notes</th>
+        </tr>
+        <tr>
+            <th><input type="text" placeholder="Filter VMName" class="column-filter form-control form-control-sm" data-column="0"></th>
+            <th><input type="text" placeholder="Filter OS" class="column-filter form-control form-control-sm" data-column="1"></th>
+            <th><input type="text" placeholder="Filter Site" class="column-filter form-control form-control-sm" data-column="2"></th>
+            <th><input type="text" placeholder="Filter State" class="column-filter form-control form-control-sm" data-column="3"></th>
+            <th><input type="text" placeholder="Filter Created" class="column-filter form-control form-control-sm" data-column="4"></th>
+            <th><input type="text" placeholder="Filter SizeGB" class="column-filter form-control form-control-sm" data-column="5"></th>
+            <th><input type="text" placeholder="Filter InUseGB" class="column-filter form-control form-control-sm" data-column="6"></th>
+            <th><input type="text" placeholder="Filter IP" class="column-filter form-control form-control-sm" data-column="7"></th>
+            <th><input type="text" placeholder="Filter NIC" class="column-filter form-control form-control-sm" data-column="8"></th>
+            <th><input type="text" placeholder="Filter VMTools" class="column-filter form-control form-control-sm" data-column="9"></th>
+            <th><input type="text" placeholder="Filter VMVersion" class="column-filter form-control form-control-sm" data-column="10"></th>
+            <th><input type="text" placeholder="Filter Host" class="column-filter form-control form-control-sm" data-column="11"></th>
+            <th><input type="text" placeholder="Filter Cluster" class="column-filter form-control form-control-sm" data-column="12"></th>
+            <th><input type="text" placeholder="Filter Notes" class="column-filter form-control form-control-sm" data-column="13"></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for vm in vms %}
+    
+        <tr>
+            <td>{{ vm.VMName }}</td>
+            <td>{{ vm.OS }}</td>
+            <td>{{ vm.Site }}</td>
+            <td>{{ vm.State }}</td>
+            <td>{{ vm.Created }}</td>
+            <td>{{ vm.SizeGB }}</td>
+            <td>{{ vm.InUseGB }}</td>
+            <td>{{ vm.IP }}</td>
+            <td>{{ vm.NIC }}</td>
+            <td>{{ vm.VMTools }}</td>
+            <td>{{ vm.VMVersion }}</td>
+            <td>{{ vm.Host }}</td>
+            <td>{{ vm.Cluster }}</td>
+            <td>{{ vm.Notes }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    var table = $('#vmTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: ['copy', 'csv', 'excel'],
+        orderCellsTop: true,
+        fixedHeader: true
+    });
+    $('.column-filter').on('keyup change', function() {
+        table.column($(this).data('column'))
+            .search(this.value)
+            .draw();
+    });
+});
+</script>
+{% endblock %}

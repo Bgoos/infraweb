@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+.card {
+    margin-bottom: 15px;
+}
+.card-body {
+    padding: 10px;
+}
+.chart-container {
+    height: 250px;
+}
+</style>
+
+<h1 class="text-center mb-3">Audit Reports Dashboard</h1>
+
+<!-- VM Statistics Cards -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Total VMs (Powered On)</h6>
+                <h3 class="card-text mb-0">{{ total_vms }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Windows VMs</h6>
+                <h3 class="card-text mb-0">{{ windows_vms }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Red Hat VMs</h6>
+                <h3 class="card-text mb-0">{{ redhat_vms }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- vCenter Health Cards -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">SSL Cert Expiring (30d)</h6>
+                <h3 class="card-text mb-0 {% if certs_expiring > 0 %}text-warning{% endif %}">{{ certs_expiring }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Clusters with DRS Disabled</h6>
+                <h3 class="card-text mb-0 {% if drs_disabled > 0 %}text-warning{% endif %}">{{ drs_disabled }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Clusters with HA Disabled</h6>
+                <h3 class="card-text mb-0 {% if ha_disabled > 0 %}text-warning{% endif %}">{{ ha_disabled }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">vCenters with Issues (view vCenters link)</h6>
+                <h3 class="card-text mb-0 {% if vcenter_issues > 0 %}text-danger{% endif %}">{{ vcenter_issues }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- First Row of Charts -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Free Storage per Cluster (TiB)</h6>
+                <div class="chart-container">
+                    <canvas id="storageChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">VMs per Site</h6>
+                <div class="chart-container">
+                    <canvas id="siteChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Second Row of Charts -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Hosts per Site</h6>
+                <div class="chart-container">
+                    <canvas id="hostsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Powered Off VMs per Site</h6>
+                <div class="chart-container">
+                    <canvas id="poweredOffChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Last Update Information -->
+<div class="card">
+    <div class="card-body">
+        <h6 class="card-title">Last Update Information</h6>
+        <div class="row">
+            <div class="col-md-4">
+                <p class="mb-0"><strong>Last Run:</strong> {{ last_update.last_run if last_update.last_run else 'Never' }}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-0"><strong>Duration:</strong> {{ last_update.duration }} seconds</p>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-0"><strong>Total Updates:</strong> {{ last_update.count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const chartConfig = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false },
+        title: { display: false }
+    },
+    scales: {
+        x: {
+            ticks: {
+                maxRotation: 45,
+                minRotation: 45
+            }
+        }
+    }
+};
+
+// Storage Chart
+new Chart(document.getElementById('storageChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ cluster_storage.keys()|list|tojson }},
+        datasets: [{
+            data: {{ cluster_storage.values()|list|tojson }},
+            backgroundColor: '#36a2eb'
+        }]
+    },
+    options: {
+        ...chartConfig,
+        scales: {
+            ...chartConfig.scales,
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Free Storage (TiB)'
+                }
+            }
+        }
+    }
+});
+
+// VMs per Site Chart
+new Chart(document.getElementById('siteChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ site_counts.keys()|list|tojson }},
+        datasets: [{
+            data: {{ site_counts.values()|list|tojson }},
+            backgroundColor: '#ff6384'
+        }]
+    },
+    options: {
+        ...chartConfig,
+        scales: {
+            ...chartConfig.scales,
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of VMs'
+                }
+            }
+        }
+    }
+});
+
+// Hosts per Site Chart
+new Chart(document.getElementById('hostsChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ hosts_by_site.keys()|list|tojson }},
+        datasets: [{
+            data: {{ hosts_by_site.values()|list|tojson }},
+            backgroundColor: '#4bc0c0'
+        }]
+    },
+    options: {
+        ...chartConfig,
+        scales: {
+            ...chartConfig.scales,
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Hosts'
+                }
+            }
+        }
+    }
+});
+
+// Powered Off VMs Chart
+new Chart(document.getElementById('poweredOffChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ powered_off_by_site.keys()|list|tojson }},
+        datasets: [{
+            data: {{ powered_off_by_site.values()|list|tojson }},
+            backgroundColor: '#ff9f40'
+        }]
+    },
+    options: {
+        ...chartConfig,
+        scales: {
+            ...chartConfig.scales,
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Powered Off VMs'
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

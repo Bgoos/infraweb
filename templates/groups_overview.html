@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Groups Overview{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Groups Overview</h1>
+
+<div class="mb-3">
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+            Toggle Columns
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="column-toggle">
+            <!-- Column toggle checkboxes will be dynamically added here -->
+        </ul>
+    </div>
+</div>
+
+<table id="groupsTable" class="table table-striped table-bordered" style="width:100%">
+    <thead>
+        <tr>
+            <th>Role</th>
+            <th>SAM Account Name</th>
+            <th>Name</th>
+            <th>Enabled</th>
+            <th>Creation Date</th>
+            <th>Last Login</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for group in groups %}
+        <tr>
+            <td>{{ group.role }}</td>
+            <td>{{ group.samaccountname }}</td>
+            <td>{{ group.name }}</td>
+            <td>{{ "Yes" if group.enabled else "No" }}</td>
+            <td>{{ group.creation_date }}</td>
+            <td>{{ group.last_login }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    var groupsTableDefaultColumns = [0, 1, 2, 3, 4, 5]; // Show all columns by default
+
+    var table = $('#groupsTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'copy',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            {
+                extend: 'csv',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            {
+                extend: 'excel',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            }
+        ],
+        orderCellsTop: true,
+        fixedHeader: true
+    });
+
+    // Create column visibility toggle checkboxes
+    table.columns().every(function(index) {
+        var column = this;
+        var checked = groupsTableDefaultColumns.includes(index) ? 'checked' : '';
+        var li = $('<li><label class="dropdown-item"><input type="checkbox" ' + checked + '> ' + $(column.header()).text() + '</label></li>')
+            .appendTo('#column-toggle');
+        
+        $('input', li).on('change', function() {
+            column.visible(this.checked);
+        });
+
+        // Set initial visibility
+        column.visible(groupsTableDefaultColumns.includes(index));
+    });
+
+    // Prevent dropdown from closing when clicking on checkboxes
+    $('.dropdown-menu').on('click', function(e) {
+        e.stopPropagation();
+    });
+});
+</script>
+{% endblock %}

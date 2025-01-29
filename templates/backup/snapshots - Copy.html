@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Snapshots{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Snapshots</h1>
+
+<div class="mb-3">
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+            Toggle Columns
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="column-toggle">
+        </ul>
+    </div>
+</div>
+
+<table id="snapshotsTable" class="table table-striped table-bordered" style="width:100%">
+    <thead>
+        <tr>
+            <th>VM</th>
+            <th>Snapshot</th>
+            <th>Created</th>
+            <th>Size (GB)</th>
+            <th>User</th>
+        </tr>
+        <tr>
+            <th><input type="text" placeholder="Filter VM" class="column-filter form-control form-control-sm" data-column="0"></th>
+            <th><input type="text" placeholder="Filter Snapshot" class="column-filter form-control form-control-sm" data-column="1"></th>
+            <th><input type="text" placeholder="Filter Created" class="column-filter form-control form-control-sm" data-column="2"></th>
+            <th><input type="text" placeholder="Filter Size (GB)" class="column-filter form-control form-control-sm" data-column="3"></th>
+            <th><input type="text" placeholder="Filter User" class="column-filter form-control form-control-sm" data-column="4"></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for snapshot in snapshots %}
+        <tr>
+            <td>{{ snapshot.vm_name }}</td>
+            <td>{{ snapshot.snapshot }}</td>
+            <td>{{ snapshot.created }}</td>
+            <td>{{ snapshot.size | round(2) }}</td> <!-- Directly display the size -->
+            <td>{{ snapshot.user }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    var table = $('#snapshotsTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'copy',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            {
+                extend: 'csv',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            {
+                extend: 'excel',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            }
+        ],
+        orderCellsTop: true,
+        fixedHeader: true
+    });
+
+    // Filter functionality
+    $('.column-filter').on('keyup change', function() {
+        table.column($(this).data('column'))
+            .search(this.value)
+            .draw();
+    });
+
+    // Create column visibility toggle checkboxes
+    table.columns().every(function(index) {
+        var column = this;
+        var checked = index < 3 ? 'checked' : '';  // Make first 3 columns visible initially
+        var li = $('<li><label class="dropdown-item"><input type="checkbox" ' + checked + '> ' + $(column.header()).text() + '</label></li>')
+            .appendTo('#column-toggle');
+        
+        $('input', li).on('change', function() {
+            column.visible(this.checked);
+        });
+
+        // Set initial visibility
+        column.visible(index < 3);
+    });
+
+    // Prevent dropdown from closing when clicking on checkboxes
+    $('.dropdown-menu').on('click', function(e) {
+        e.stopPropagation();
+    });
+});
+</script>
+{% endblock %}

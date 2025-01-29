@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Audit Reports{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.3/css/select.dataTables.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #343a40;
+        }
+        .navbar-brand, .nav-link {
+            color: #ffffff !important;
+        }
+        .nav-link.active {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+            width: 95%;
+            max-width: none;
+        }
+        h1 {
+            color: #343a40;
+            margin-bottom: 30px;
+        }
+        .table {
+            font-size: 0.9rem;
+            width: 100% !important;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        .dataTables_wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+        .dataTables_filter {
+            margin-bottom: 10px;
+        }
+        table.dataTable thead th {
+            white-space: nowrap;
+        }
+        table.dataTable thead input {
+            width: 100%;
+            padding: 3px;
+            box-sizing: border-box;
+        }
+        .column-picker {
+            margin-bottom: 15px;
+        }
+        .column-picker .dropdown-menu {
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .column-picker .form-check {
+            margin-bottom: 5px;
+        }
+    </style>
+    {% block additional_styles %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Infraweb Home</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/prod_users' %}active{% endif %}" href="/prod_users">CSModule Users</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/dev_users' %}active{% endif %}" href="/dev_users">CYDModule Users</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/virtual_machines' %}active{% endif %}" href="/virtual_machines">Virtual Machines</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/windows_vms' %}active{% endif %}" href="/windows_vms">Windows VMs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/hosts' %}active{% endif %}" href="/hosts">Hosts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/clusters' %}active{% endif %}" href="/clusters">Clusters</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/snapshots' %}active{% endif %}" href="/snapshots">Snapshots</a>
+                    </li>
+		    <li class="nav-item">
+    		        <a class="nav-link {% if request.path == '/vcenters' %}active{% endif %}" href="/vcenters">vCenters</a>
+		    </li>
+                    <li class="nav-item">
+                       <a class="nav-link {% if request.path == '/rules' %}active{% endif %}" href="/rules">Affinity Rules</a>
+                   </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.3.3/js/dataTables.select.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('.data-table').each(function() {
+            var tableId = $(this).attr('id');
+            var defaultColumns = window[tableId + 'DefaultColumns'] || [];
+
+            var columnPicker = $('<div class="column-picker dropdown">' +
+                '<button class="btn btn-secondary dropdown-toggle" type="button" id="columnPickerButton" data-bs-toggle="dropdown" aria-expanded="false">' +
+                'Select Columns' +
+                '</button>' +
+                '<ul class="dropdown-menu" aria-labelledby="columnPickerButton"></ul>' +
+                '</div>');
+
+            columnPicker.insertBefore($(this));
+
+            var table = $(this).DataTable({
+                orderCellsTop: true,
+                fixedHeader: true,
+                scrollX: false,
+                autoWidth: false,
+                pageLength: 20,
+                lengthMenu: [[20, 50, 100, -1], [20, 50, 100, "All"]],
+                dom: '<"row"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"f>>rtip',
+                buttons: [
+                    'copy', 'csv', 'excel'
+                ],
+                initComplete: function () {
+                    var api = this.api();
+                    api.columns().every(function (index) {
+                        var column = this;
+                        var title = $(column.header()).text();
+                        var input = $('<input type="text" placeholder="Filter ' + title + '" />')
+                            .appendTo($(column.header()).empty())
+                            .on('keyup change clear', function () {
+                                if (column.search() !== this.value) {
+                                    column.search(this.value).draw();
+                                }
+                            });
+
+                        // Add column to dropdown
+                        var checked = defaultColumns.includes(index) ? 'checked' : '';
+                        var listItem = $('<li><div class="form-check">' +
+                            '<input class="form-check-input" type="checkbox" value="' + index + '" id="column' + index + '" ' + checked + '>' +
+                            '<label class="form-check-label" for="column' + index + '">' + title + '</label>' +
+                            '</div></li>');
+                        columnPicker.find('.dropdown-menu').append(listItem);
+
+                        // Set initial column visibility
+                        column.visible(defaultColumns.includes(index));
+                    });
+
+                    // Handle checkbox changes
+                    columnPicker.find('.form-check-input').on('change', function() {
+                        var column = api.column($(this).val());
+                        column.visible($(this).is(':checked'));
+                    });
+                }
+            });
+        });
+    });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
