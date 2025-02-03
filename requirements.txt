@@ -6,3 +6,4 @@ sqlalchemy==2.0.21
 werkzeug==2.3.7
 Flask-Caching
 requests
+redis
